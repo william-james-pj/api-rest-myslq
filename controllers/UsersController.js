@@ -9,7 +9,7 @@ class UsersController {
   }
 
   async findUserId(req, res) {
-    let user = await userModels.findAllId(req.params.id);
+    let user = await userModels.findById(req.params.id);
     if (user === undefined) {
       res.status(400);
       res.json({});
@@ -19,16 +19,25 @@ class UsersController {
     }
   }
 
-  // async findUserName(req, res) {
-  //   let user = await userModels.findAllName(req.params.id);
-  //   if (user === undefined) {
-  //     res.status(400);
-  //     res.json({});
-  //   } else {
-  //     res.status(200);
-  //     res.json(user);
-  //   }
-  // }
+  async updateUser(req, res) {
+    let { id, name, email, role } = req.body;
+    let result = await userModels.update(id, name, email, role);
+    if (result === undefined)
+      return res.status(500).send({ err: "Internal Server Error" });
+    if (result.status === false)
+      return res.status(406).send({ err: result.err });
+    res.status = 200;
+    res.send("Updated user!");
+  }
+
+  async deleteUser(req, res) {
+    let id  = req.params.id;
+    let result = await userModels.delete(id);
+    if (result.status === false)
+      return res.status(406).send({ err: result.err });
+    res.status = 200;
+    res.send("Deleted user!");
+  }
 
   async createUser(req, res) {
     let erros = validationResult(req).formatWith(({ msg }) => msg);
@@ -46,7 +55,7 @@ class UsersController {
         .send({ erros: "The email is already registered!" });
     }
 
-    await userModels.newUser(name, email, password, role);
+    await userModels.new(name, email, password, role);
 
     res.status = 200;
     res.send("Create user!");
