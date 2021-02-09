@@ -1,15 +1,16 @@
 const { body, validationResult } = require("express-validator");
 
-const userModels = require("../models/User");
+const UserModels = require("../models/User");
+const PasswordToken = require("../models/PasswordToken");
 class UsersController {
   async findAllUser(req, res) {
-    let users = await userModels.findAll();
+    let users = await UserModels.findAll();
     res.status(200);
     res.json(users);
   }
 
   async findUserId(req, res) {
-    let user = await userModels.findById(req.params.id);
+    let user = await UserModels.findById(req.params.id);
     if (user === undefined) {
       res.status(400);
       res.json({});
@@ -21,7 +22,7 @@ class UsersController {
 
   async updateUser(req, res) {
     let { id, name, email, role } = req.body;
-    let result = await userModels.update(id, name, email, role);
+    let result = await UserModels.update(id, name, email, role);
     if (result === undefined)
       return res.status(500).send({ err: "Internal Server Error" });
     if (result.status === false)
@@ -31,8 +32,8 @@ class UsersController {
   }
 
   async deleteUser(req, res) {
-    let id  = req.params.id;
-    let result = await userModels.delete(id);
+    let id = req.params.id;
+    let result = await UserModels.delete(id);
     if (result.status === false)
       return res.status(406).send({ err: result.err });
     res.status = 200;
@@ -47,7 +48,7 @@ class UsersController {
 
     let { name, email, password, role } = req.body;
 
-    let emailExists = await userModels.findEmail(email);
+    let emailExists = await UserModels.findEmail(email);
 
     if (emailExists) {
       return res
@@ -55,10 +56,21 @@ class UsersController {
         .send({ erros: "The email is already registered!" });
     }
 
-    await userModels.new(name, email, password, role);
+    await UserModels.new(name, email, password, role);
 
     res.status = 200;
     res.send("Create user!");
+  }
+
+  async recoverPassword(req, res) {
+    let email = req.body.email;
+    console.log("aa " + email);
+    let result = await PasswordToken.create(email);
+
+    if (result === undefined) res.status(406).send({ err: result.err });
+
+    res.status = 200;
+    res.send("" + result.token);
   }
 
   validate(method) {
@@ -78,6 +90,22 @@ class UsersController {
         ];
       }
     }
+  }
+
+  async changePasword(req, res) {
+    let { token, password } = req.body;
+
+    let isTokenValid = await PasswordToken.validateToken(token);
+    if (!isTokenValid.status)
+      return res.status(406).send({ err: "Invalid token" });
+      
+    await UserModels.changePassword(
+      password,
+      isTokenValid.token.user_id,
+      isTokenValid.token.token
+    );
+    res.status = 200;
+    res.send("Password changed");
   }
 }
 
