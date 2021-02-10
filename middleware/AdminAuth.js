@@ -7,7 +7,7 @@ module.exports = function (req, res, next) {
   if (authToke === undefined)
     return res
       .status(403)
-      .send({ status: false, err: "You are not authenticated" });
+      .send({ status: false, res: "You are not authenticated" });
 
   const bearer = authToke.split(" ");
   let token = bearer[1];
@@ -19,11 +19,11 @@ module.exports = function (req, res, next) {
     else
       return res
         .status(403)
-        .send({ status: false, err: "You don't have permission to access" });
+        .send({ status: false, res: "You don't have permission to access" });
   } catch (error) {
     // console.log(error);
     return res
       .status(403)
-      .send({ status: false, err: "You are not authenticated" });
+      .send({ status: false, res: "You are not authenticated" });
   }
 };
