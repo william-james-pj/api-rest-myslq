@@ -2,7 +2,7 @@ const { body, validationResult } = require("express-validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
-let secret = "sdbd19bdeueid38uqwbb73773vdabc7f771";
+let secret = require("../config/secretJwt");
 
 const UserModels = require("../models/User");
 const PasswordToken = require("../models/PasswordToken");
