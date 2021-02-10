@@ -1,4 +1,8 @@
 const { body, validationResult } = require("express-validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+
+let secret = "sdbd19bdeueid38uqwbb73773vdabc7f771";
 
 const UserModels = require("../models/User");
 const PasswordToken = require("../models/PasswordToken");
@@ -27,7 +31,7 @@ class UsersController {
       return res.status(500).send({ err: "Internal Server Error" });
     if (result.status === false)
       return res.status(406).send({ err: result.err });
-    res.status = 200;
+      res.status(200);
     res.send("Updated user!");
   }
 
@@ -36,7 +40,7 @@ class UsersController {
     let result = await UserModels.delete(id);
     if (result.status === false)
       return res.status(406).send({ err: result.err });
-    res.status = 200;
+      res.status(200);
     res.send("Deleted user!");
   }
 
@@ -58,7 +62,7 @@ class UsersController {
 
     await UserModels.new(name, email, password, role);
 
-    res.status = 200;
+    res.status(200);
     res.send("Create user!");
   }
 
@@ -69,7 +73,7 @@ class UsersController {
 
     if (result === undefined) res.status(406).send({ err: result.err });
 
-    res.status = 200;
+    res.status(200);
     res.send("" + result.token);
   }
 
@@ -98,14 +102,31 @@ class UsersController {
     let isTokenValid = await PasswordToken.validateToken(token);
     if (!isTokenValid.status)
       return res.status(406).send({ err: "Invalid token" });
-      
+
     await UserModels.changePassword(
       password,
       isTokenValid.token.user_id,
       isTokenValid.token.token
     );
-    res.status = 200;
+    res.status(200);
     res.send("Password changed");
+  }
+
+  async login(req, res) {
+    let { email, password } = req.body;
+
+    let user = await UserModels.findByEmail(email);
+
+    if (user === undefined)
+      return res.status(406).send({ err: "Invalid email" });
+
+    let result = await bcrypt.compare(password, user.password);
+
+    if (!result) return res.status(406).send({ err: "Invalid password" });
+
+    var token = jwt.sign({ email, role: user.role }, secret);
+    res.status(406);
+    res.send("Login successfully");
   }
 }
 
