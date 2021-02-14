@@ -101,7 +101,7 @@ class UsersController {
 
     var token = jwt.sign({ email, role: user.res.role }, secret);
     
-    return res.status(200).send({ status: true, res: "Login successfully" });
+    return res.status(200).send({ status: true, res: token });
   }
 
   validate(method) {
