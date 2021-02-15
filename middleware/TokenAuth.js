@@ -15,11 +15,11 @@ module.exports = function (req, res, next) {
   try {
     let decoded = jwt.verify(token, secret);
 
-    if (decoded.role === 1) next();
+    if (decoded.email !== undefined) next();
     else
       return res
         .status(403)
-        .send({ status: false, res: "You don't have permission to access" });
+        .send({ status: false, res: "Invalid token" });
   } catch (error) {
     // console.log(error);
     return res
